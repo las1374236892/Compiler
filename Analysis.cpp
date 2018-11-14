@@ -3,17 +3,17 @@
 #include <string.h>
 #include <ctype.h>
 
-char file[100000];
-int filelen = 0;
-int count = 0;
+char file[100000];//读取的文件数组
+int filelen = 0;//最大长度
+int count = 0;//词法分析计数器
 char stayWord[13][15] = { "const","int","char","void","main","while","if","switch","case","default","scanf","printf","return" };
 
-int isStayWord(char *str);
-int isCalculate(char ch);
-int isSymbol(char ch);
-int isQuotation(char h);
-int inSymbol(int current, char *array);
-void Analysis();
+int isStayWord(char *str);//判断是否为关键字，并且返回其在数组中的位置
+int isCalculate(char ch);//判断是否为运算符
+int isSymbol(char ch);//判断是否为其他的合法字符
+int isQuotation(char h);//判断是否为引号
+int inSymbol(int current, char *array);//读取下一个单词
+void Analysis();//词法分析程序
 
 int isStayWord(char *str) {
 	int i = 0;
@@ -132,14 +132,14 @@ void Analysis() {
 					printf("%d IDENT %s\n",count,copyStr);
 				else
 					printf("%d KEYWORD %s\n",count,copyStr);
-			}
+			}//发现字母开头
 			else if (isdigit(Str[k])) {
 				while (isdigit(Str[k]) && k < length) {
 					copyStr[x++] = Str[k++];
 				}
 				count++;
 				printf("%d UNSIGNEDINTGER %s\n",count,copyStr);
-			}
+			}//发现数字开头
 			else if (isCalculate(Str[k])) {
 				while (isCalculate(Str[k]) && k < length) {
 					copyStr[x++] = Str[k++];
@@ -177,7 +177,7 @@ void Analysis() {
 							break;
 						}
 				}
-			}			
+			}//发现计算符号开头		
 			else if (isSymbol(Str[k])) {
 				count++;
 				switch (isSymbol(Str[k]))
@@ -204,7 +204,7 @@ void Analysis() {
 					break;
 				}
 				k++;
-			}
+			}//发现字符
 			else if (isQuotation(Str[k])) {
 				count++;
 				int t;
@@ -234,12 +234,12 @@ void Analysis() {
 						printf("%d CHAR %s\'\n", count, Str);
 				}	
 				break;
-			}
+			}//发现单引号和双引号开头
 			else {
 				k++;
 				count++;
 				printf("%d ERROR %s\n", count,copyStr);
-			}
+			}//除此以外均进行报错
 			memset(copyStr, 0, 1000);
 		}
 	}
@@ -257,8 +257,8 @@ int main() {
 	for (i = 0; i < filelen; i++) {
 		if (file[i] == '\n' || file[i] == '\t')
 			file[i] = ' ';
-	}
-	Analysis();
+	}//将所有换行符和转义符替换为空格
+	Analysis();//启动词法分析程序
 	fclose(fp);
 	system("pause");
 	return 0;
