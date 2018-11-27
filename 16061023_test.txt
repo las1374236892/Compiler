@@ -1,0 +1,59 @@
+const int f1 = 0,f2 = 1;const char a = 'a',b = 'b';
+int b,d;
+char c2,c3;
+int num1[100];
+
+int add(int a,int b){
+	return (a+b);
+}
+
+void ff(){
+	;
+}
+
+void main(){
+	int e;
+	int num;
+	scanf(b,d);
+	e = a+b;
+	e = a-b;
+	e = a*b;
+	e = a/b;
+	c2 = '_';
+	c3 = 'Z';
+	c2 = '+';
+	c3 = '*';
+	c2 = '1';
+	num = 10023;
+	num = +158;
+	num = -1239040;
+	e = +a+b-add(a,b);
+	e = -a+b*a;
+	e = num1[25]+a*b;
+	a = 1;
+	num[3] = 2;
+	if(a>0){
+		num1[2] = 1;
+	}
+	if(a-1){
+		num1[2] = 0;
+	}
+	while(a>0){
+	    	num[4] = num[4]+1;
+		a = a-1;
+	}
+	b = 2;
+      	switch(a){
+		case 1: c = add(a,b);
+		case 2: ff();
+		default:
+	}
+	switch(b){
+		case 'a': c = add(a+1,b);
+		case 'Z': ff();
+		default:d = 2;
+	}		
+	printf(a+1);
+	printf("abc! d ef      g");
+	printf("abcde",a+1);
+}
