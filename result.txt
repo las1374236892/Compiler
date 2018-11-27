@@ -1,0 +1,83 @@
+const int f1 = 0 This is constDef
+, f2 = 1 This is constDef
+; This is constDesc
+const char a = 'a' This is constDef
+, b = 'b' This is constDef
+; This is constDesc
+int b , This is varDef
+d ; This is varDesc
+char c2 , This is varDef
+c3 ; This is varDesc
+int num1 [ 100 ] This is varDef
+; This is varDesc
+int add ( int add ( int a , int b ) This is paraTab
+{ return ( a + b ) This is returnState
+This is ERROR,no SEMI
+; This is Empty statement
+} This is Statement Column
+This is Compound statement
+This is returnFuncDef
+void ff void ff ( ) This is paraTab
+{ ; This is Empty statement
+} This is Statement Column
+This is Compound statement
+This is unreturnFuncDef
+void main } void main ( ) { int e ; This is varDesc
+int num ; This is varDesc
+scanf ( b , d ) ; This is scanf statement
+e = a + b ; This is assignState
+e = a - b ; This is assignState
+e = a * b ; This is assignState
+e = a / b ; This is assignState
+c2 = ; ERROR
+This is assignState
+c3 = 'Z' ; This is assignState
+c2 = '+' ; This is assignState
+c3 = '*' ; This is assignState
+c2 = '1' ; This is assignState
+num = 10023 ; This is assignState
+num = + 158 ; This is assignState
+num = - 1239040 ; This is assignState
+e = + a + b - add ( add ( a , b ) This is reFuncCall
+; This is assignState
+e = - a + b * a ; This is assignState
+e = num1 [ 25 ] + a * b ; This is assignState
+a = 1 ; This is assignState
+num [ 3 ] = 2 ; This is assignState
+if ( a > 0 ) { num1 [ 2 ] = 1 ; This is assignState
+} This is Statement Column
+This is stateColumn
+This is conditionState
+if ( a - 1 ) { num1 [ 2 ] = 0 ; This is assignState
+} This is Statement Column
+This is stateColumn
+This is conditionState
+while ( a > 0 ) { num [ 4 ] = num [ 4 ] + 1 ; This is assignState
+a = a - 1 ; This is assignState
+} This is Statement Column
+This is stateColumn
+This is loopState
+b = 2 ; This is assignState
+switch ( a ) { case 1 : c = add ( add ( a , b ) This is reFuncCall
+; This is assignState
+This is caseChildState
+case 2 : ff ( ) This is unreFuncCall
+; This is Call with no return value function
+This is caseChildState
+default : } This is defaultState
+This is switchState
+switch ( b ) { case 'a' : c = add ( add ( a + 1 , b ) This is reFuncCall
+; This is assignState
+This is caseChildState
+case 'Z' : ff ( ) This is unreFuncCall
+; This is Call with no return value function
+This is caseChildState
+default : d = 2 ; This is assignState
+} This is defaultState
+This is switchState
+printf ( a + 1 ) ; This is printf statement
+printf ( "abc! d ef      g" ) ; This is printf statement
+printf ( "abcde" , a + 1 ) ; This is printf statement
+} This is Statement Column
+This is Compound statement
+This is mainFunc
