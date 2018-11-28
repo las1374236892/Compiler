@@ -4,53 +4,44 @@
 #include <ctype.h>
 #include "Lex.h"
 
-char fileName[100];//ÎÄ¼şÂ·¾¶
-char symbolArray[100000][500];//µ¥´ÊÊı×é
-int reIndex = 0;//ÓĞ·µ»ØÖµº¯ÊıÏÂ±ê
-int unreIndex = 0;//ÎŞ·µ»ØÖµº¯ÊıÏÂ±ê
-int reLength = 0;//ÓĞ·µ»ØÖµº¯Êı³¤¶È
-int unreLength = 0;//ÎŞ·µ»ØÖµº¯Êı³¤¶È
-char returnFuncList[10000][500];//·µ»ØÖµº¯Êı±í
-char unreturnFuncList[10000][500];//ÎŞ·µ»ØÖµº¯Êı±í
-int isInt = 0;//ÊÇ·ñÎªÕûÊı
+char fileName[100];//æ–‡ä»¶è·¯å¾„
+char symbolArray[100000][500];//å•è¯æ•°ç»„
+int reIndex = 0;//æœ‰è¿”å›å€¼å‡½æ•°ä¸‹æ ‡
+int unreIndex = 0;//æ— è¿”å›å€¼å‡½æ•°ä¸‹æ ‡
+int reLength = 0;//æœ‰è¿”å›å€¼å‡½æ•°é•¿åº¦
+int unreLength = 0;//æ— è¿”å›å€¼å‡½æ•°é•¿åº¦
+char returnFuncList[10000][500];//è¿”å›å€¼å‡½æ•°è¡¨
+char unreturnFuncList[10000][500];//æ— è¿”å›å€¼å‡½æ•°è¡¨
+int isInt = 0;//æ˜¯å¦ä¸ºæ•´æ•°
 
 typedef struct{
     char name[500] ; //name of identifier
-    int type ;//0-const 1-var 2-function 3-para
-    int value ;//³£Á¿µÄÖµ,ÌØ±ğµÄ£¬Èç¹û±êÊ¶·ûÊÇÒ»¸öº¯ÊıÃû£¬ÔòÓÃ1±íÊ¾º¯ÊıÀàĞÍÎªint£¬0Îªvoid
-    int address ;//±êÊ¶·û´æ´¢µØÖ·»òÕßµØÖ·Î»ÒÆ
-    int para ;//±íÊ¾º¯Êı²ÎÊı¸öÊı»òÕßÊı×é´óĞ¡
+    int type ;//0-const_int 1-const_char 2-var_int 3-var_char 4-function_int 5-func_char 5-para_int 6-para_char
+    int value ;//å¸¸é‡çš„å€¼,ç‰¹åˆ«çš„ï¼Œå¦‚æœæ ‡è¯†ç¬¦æ˜¯ä¸€ä¸ªå‡½æ•°åï¼Œåˆ™ç”¨2è¡¨ç¤ºå‡½æ•°çš„ç±»å‹ä¸ºchar 1è¡¨ç¤ºå‡½æ•°ç±»å‹ä¸ºintï¼Œ0ä¸ºvoid
+    int address ;//æ ‡è¯†ç¬¦å­˜å‚¨åœ°å€æˆ–è€…åœ°å€ä½ç§»
+    int para ;//è¡¨ç¤ºå‡½æ•°å‚æ•°ä¸ªæ•°æˆ–è€…æ•°ç»„å¤§å°
+    int level;//è¡¨ç¤ºå…¶æ‰€åœ¨å±‚æ¬¡
 }symbol ;
-typedef struct{
-    symbol element[10000];//·ûºÅ±í
-    int index;//·ûºÅ±íÕ»¶¥Ö¸Õë, number of symbol table
-    int toltalPre;//µ±Ç°·ûºÅ±íÓµÓĞµÄ·Ö³ÌĞò×ÜÊı
-    int indexOfPre[10000];//·Ö³ÌĞòË÷Òı  find index in table
-}symbolTab ;
-
-symbolTab symbolTable;
+symbol element[10000];
 
 int symtype[100000];
-int symbolIndex = 0;//µ¥´ÊÊı×éÏÂ±ê
+int symbolIndex = 0;//å•è¯æ•°ç»„ä¸‹æ ‡
 int symbolArrayLength = 0;
-int type;
-int value;
-int address;
-int para;
+int symbolTabAdress = 0;
 
 void getSymbol();
 void flashBack(int times);
 void program();
-void constDesc();
-void varDesc();
-void Func();
-void returnFuncDef();
-void unreturnFuncDef();
-void mainFunc();
-void constDef();
-void varDef();
-void paraTab();
-void comStatement();
+void constDesc(int level);
+void varDesc(int level);
+void Func(int level);
+void returnFuncDef(int level);
+void unreturnFuncDef(int level);
+void mainFunc(int level);
+void constDef(int level);
+void varDef(int level);
+void paraTab(int level);
+void comStatement(int level);
 void stateColumn();
 void Statement();
 void conditionState();
@@ -71,6 +62,31 @@ void defaultFunc();
 void term();
 void factor();
 
+int insertSymbolTab(char *name,int type,int value,int para,int level){
+    strcpy(element[symbolTabAdress].name,name);
+    element[symbolTabAdress].type = type;
+    element[symbolTabAdress].value = value;
+    element[symbolTabAdress].address = symbolTabAdress;
+    element[symbolTabAdress].para = para;
+    element[symbolTabAdress].level = level;
+    symbolTabAdress++;
+}
+
+int isInSymbolTab(char *name,int type,int level){
+    int i=0;
+    for(i=0;i<symbolTabAdress;i++){
+        if(element[i].type == type && element[i].level == level){
+            if(!strcmp(element[i].name,name)){
+                return element[i].address;
+            }
+            else{
+                return 0;
+            }
+        }
+    }
+    return 0;
+}
+
 void getSymbol(){
     strcpy(symbolName,symbolArray[symbolIndex]);
     symbolType = symtype[symbolIndex];
@@ -85,37 +101,37 @@ void flashBack(int times){
 }
 
 void program(){
-    constDesc();
-    varDesc();
-    Func();
-    mainFunc();
+    constDesc(0);
+    varDesc(0);
+    Func(1);
+    mainFunc(2);
 }
 
-void constDesc(){
+void constDesc(int level){
     getSymbol();
     if(symbolType == CONSTSYM){
-        constDef();
+        constDef(level);
         if(symbolType == SEMI){
             printf("This is constDesc\n");
-            constDesc();
+            constDesc(level);
         }
     }
 }
 
-void varDesc(){
-    varDef();
+void varDesc(int level){
+    varDef(level);
     if(symbolType == SEMI){
         printf("This is varDesc\n");
         getSymbol();
-        varDesc();
+        varDesc(level);
     }
 }
 
-void Func(){
+void Func(int level){
     flashBack(2);
     while(symbolType == INTSYM || symbolType == CHARSYM ||symbolType == VOIDSYM){
         if(symbolType == INTSYM || symbolType == CHARSYM){
-            returnFuncDef();
+            returnFuncDef(level);
             getSymbol();
         }
         else if(symbolType == VOIDSYM){
@@ -126,7 +142,7 @@ void Func(){
             }
             else{
                 flashBack(1);
-                unreturnFuncDef();
+                unreturnFuncDef(level);
                 getSymbol();
             }
         }
@@ -137,7 +153,7 @@ void Func(){
     }
 }
 
-void returnFuncDef(){
+void returnFuncDef(int level){
     if(symbolType == INTSYM || symbolType == CHARSYM){
         getSymbol();
         if(symbolType == IDENT){
@@ -148,7 +164,7 @@ void returnFuncDef(){
                 if(symbolType == Rparen){
                     getSymbol();
                     if(symbolType == LBRACE){
-                        comStatement();
+                        comStatement(level);
                         if(symbolType == RBRACE){
                             printf("This is returnFuncDef\n");
                         }
@@ -177,7 +193,7 @@ void returnFuncDef(){
     }
 }
 
-void unreturnFuncDef(){
+void unreturnFuncDef(int level){
     if(symbolType == VOIDSYM){
         getSymbol();
         if(symbolType == IDENT){
@@ -188,7 +204,7 @@ void unreturnFuncDef(){
                 if(symbolType == Rparen){
                     getSymbol();
                     if(symbolType == LBRACE){
-                        comStatement();
+                        comStatement(level);
                         if(symbolType == RBRACE){
                             printf("This is unreturnFuncDef\n");
                         }
@@ -217,7 +233,7 @@ void unreturnFuncDef(){
     }
 }
 
-void mainFunc(){
+void mainFunc(int level){
     getSymbol();
     if(symbolType == VOIDSYM){
         getSymbol();
@@ -228,7 +244,7 @@ void mainFunc(){
                 if(symbolType == Rparen){
                     getSymbol();
                     if(symbolType == LBRACE){
-                        comStatement();
+                        comStatement(level);
                         if(symbolType == RBRACE){
                             printf("This is mainFunc\n");
                         }
@@ -257,18 +273,34 @@ void mainFunc(){
     }
 }
 
-void constDef(){
+void constDef(int level){
+    char identName[500];
+    char charactor;
     getSymbol();
     if(symbolType == INTSYM){
         do{
             getSymbol();
             if(symbolType == IDENT){
+                strcpy(identName,symbolName);
                 getSymbol();
                 if(symbolType == ASSIGN){
                     getSymbol();
-                    if(symbolType == ADD || symbolType == MINUS){
+                    if(symbolType == ADD){
                         getSymbol();
                         if(symbolType == UNSIGNEDINTGER){
+                            insertSymbolTab(identName,0,atoi(symbolName),0,level);
+                            printf("This is constDef\n");
+                            getSymbol();
+                        }
+                        else{
+                            printf("This is ERROR,no UNSIGNEDINTGER\n");
+                            break;
+                        }
+                    }
+                    else if(symbolType == MINUS){
+                        getSymbol();
+                        if(symbolType == UNSIGNEDINTGER){
+                            insertSymbolTab(identName,0,(0-atoi(symbolName)),0,level);
                             printf("This is constDef\n");
                             getSymbol();
                         }
@@ -278,6 +310,7 @@ void constDef(){
                         }
                     }
                     else if(symbolType == UNSIGNEDINTGER){
+                        insertSymbolTab(identName,0,atoi(symbolName),0,level);
                         printf("This is constDef\n");
                         getSymbol();
                     }
@@ -302,10 +335,13 @@ void constDef(){
         do{
             getSymbol();
             if(symbolType == IDENT){
+                strcpy(identName,symbolName);
                 getSymbol();
                 if(symbolType == ASSIGN){
                     getSymbol();
                     if(symbolType == CHAR){
+                        charactor = symbolName[1];
+                        insertSymbolTab(identName,1,(int)charactor,0,level);
                         printf("This is constDef\n");
                         getSymbol();
                     }
@@ -330,17 +366,24 @@ void constDef(){
     }
 }
 
-void varDef(){
-   if(symbolType == INTSYM || symbolType == CHARSYM){
+void varDef(int level){
+    int arrayLength;
+    char identName[500];
+    int type;
+    if(symbolType == INTSYM || symbolType == CHARSYM){
+        type = (symbolType == INTSYM) ? 2 : 3;
         do{
             getSymbol();
             if(symbolType == IDENT){
+                strcpy(identName,symbolName);
                 getSymbol();
                 if(symbolType == LPAREN){
                     getSymbol();
                     if(symbolType == UNSIGNEDINTGER){
+                        arrayLength = atoi(symbolName);
                         getSymbol();
                         if(symbolType == RPAREN){
+                            insertSymbolTab(identName,type,0,arrayLength,level);
                             printf("This is varDef\n");
                             getSymbol();
                         }
@@ -355,6 +398,7 @@ void varDef(){
                     }
                 }
                 else if(symbolType == COMMA){
+                    insertSymbolTab(identName,type,0,0,level);
                     printf("This is varDef\n");
                 }
                 else{
@@ -370,7 +414,9 @@ void varDef(){
    }
 }
 
-void paraTab(){
+void paraTab(int level){
+    int type;
+    int paraNum = 0;
     getSymbol();
     if(symbolType == Rparen){
         printf("This is paraTab\n");
@@ -382,8 +428,11 @@ void paraTab(){
                 getSymbol();
             }
             if(symbolType == INTSYM ||symbolType == CHARSYM){
+                type = (symbolType == INTSYM) ? 5 : 6;
                 getSymbol();
                 if(symbolType == IDENT){
+                    paraNum++;
+                    insertSymbolTab(symbolName,type,0,paraNum,level);
                     getSymbol();
                 }
                 else{
@@ -401,14 +450,14 @@ void paraTab(){
     }
 }
 
-void comStatement(){
+void comStatement(int level){
     getSymbol();
     if(symbolType == CONSTSYM){
         flashBack(1);
-        constDesc();
+        constDesc(level);
     }
     if(symbolType == INTSYM || symbolType == CHARSYM){
-        varDesc();
+        varDesc(level);
     }
     if(symbolType == IFSYM || symbolType == WHILESYM || symbolType == LBRACE || symbolType == IDENT || symbolType == IFSYM ||symbolType == SCANFSYM || symbolType == PRINTFSYM || symbolType == SEMI || symbolType == SWITCHSYM ||symbolType == RETURNSYM){
         stateColumn();
@@ -904,9 +953,9 @@ int main(){
                 symtype[symbolArrayLength] = symbolType;
                 symbolArrayLength++;
             }
-        }//½«ËùÓĞµÄ±êÊ¶·û´æÈëÊı×éÖĞ
+        }//å°†æ‰€æœ‰çš„æ ‡è¯†ç¬¦å­˜å…¥æ•°ç»„ä¸­
 		memset(line, 0, 100000);
-	}//Ã¿´Î¶ÁÈëÒ»ĞĞ
+	}//æ¯æ¬¡è¯»å…¥ä¸€è¡Œ
 
     /*for(symbolIndex=0;symbolIndex<symbolArrayLength;symbolIndex++){
         printf("%s\n",symbolArray[symbolIndex]);
