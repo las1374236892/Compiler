@@ -52,28 +52,44 @@ void dealCondition(FILE *f,char *data,char *left_num,char *right_num){
     int address;
     left_length = strlen(left_num);
     right_length = strlen(right_num);
-    for(i=0;i<right_length;i++){
-        if(right_num[i] == '$'){
-            fprintf(f,"addi $sp $sp 4\n");
-            fprintf(f,"lw $t1 0($sp)\n");
-            break;
-        }
-        if(isInSymbolTab(newlevel,right_num) != -1){
-            address = 4*isInSymbolTab(newlevel,right_num);
-            fprintf(f,"lw $t1 %s+%d\n",data,address);
-            break;
+    if(isDigit(right_num)){
+        fprintf(f,"li $t1 %s\n",right_num);
+    }
+    else{
+        for(i=0;i<right_length;i++){
+            if(right_num[i] == '$'){
+                fprintf(f,"addi $sp $sp 4\n");
+                fprintf(f,"lw $t1 0($sp)\n");
+                break;
+            }
+            if(isInSymbolTab(newlevel,right_num) != -1){
+                address = 4*isInSymbolTab(newlevel,right_num);
+                fprintf(f,"lw $t1 %s+%d\n",data,address);
+                break;
+            }
+            if(right_num[i] == '\''){
+                fprintf(f,"li $t1 %s\n",right_num);
+            }
         }
     }
-    for(i=0;i<left_length;i++){
-        if(left_num[i] == '$'){
-            fprintf(f,"addi $sp $sp 4\n");
-            fprintf(f,"lw $t0 0($sp)\n");
-            break;
-        }
-        if(isInSymbolTab(newlevel,left_num) != -1){
-            address = 4*isInSymbolTab(newlevel,left_num);
-            fprintf(f,"lw $t0 %s+%d\n",data,address);
-            break;
+    if(isDigit(left_num)){
+        fprintf(f,"li $t0 %s\n",left_num);
+    }
+    else{
+        for(i=0;i<left_length;i++){
+            if(left_num[i] == '$'){
+                fprintf(f,"addi $sp $sp 4\n");
+                fprintf(f,"lw $t0 0($sp)\n");
+                break;
+            }
+            if(isInSymbolTab(newlevel,left_num) != -1){
+                address = 4*isInSymbolTab(newlevel,left_num);
+                fprintf(f,"lw $t0 %s+%d\n",data,address);
+                break;
+            }
+            if(left_num[i] == '\''){
+                fprintf(f,"li $t0 %s\n",left_num);
+            }
         }
     }
     fprintf(f,"sub $t0 $t0 $t1\n");
@@ -316,36 +332,28 @@ void getMips(FILE *f,char *data){
             if(newlevel == 1)
                 fprintf(f,"j main\n");
             fprintf(f,"%s:\n",midElement[index].right_Num);
-            if(strcmp(midElement[index].right_Num,"main") != 0){
-                fprintf(f,"sw $ra 0($sp)\n");
-                fprintf(f,"subi $sp $sp 4\n");
-            }
             while(i>index){
+                fprintf(f,"addi $sp $sp 4\n");
+                fprintf(f,"lw $t0 0($sp)\n");
                 address = 4*isInSymbolTab(newlevel,midElement[i].result);
-                fprintf(f,"lw $t0 %s+%d\n",data,address);
+                fprintf(f,"sw $t0 %s+%d\n",data,address);
                 i--;
             }//倒序取数
+            /*if(strcmp(midElement[index].right_Num,"main") != 0){
+                fprintf(f,"sw $ra 0($sp)\n");
+                fprintf(f,"subi $sp $sp 4\n");
+            }*/
         }
         else if(!strcmp(midElement[index].op,"+")||!strcmp(midElement[index].op,"*")||!strcmp(midElement[index].op,"/")||!strcmp(midElement[index].op,"-")){
-            int i;
-            i = index+1;
             if(!strcmp(midElement[index].op,"+")){
                 dealExpression(f,data,midElement[index].left_Num,midElement[index].right_Num);
                 fprintf(f,"add $t0 $t0 $t1\n");
-                if(!strcmp(midElement[i].op,"ret")){
-                    fprintf(f,"addi $sp $sp 4\n");
-                    fprintf(f,"lw $ra 0($sp)\n");
-                }
                 fprintf(f,"sw $t0 0($sp)\n");
                 fprintf(f,"subi $sp $sp 4\n");
             }
             if(!strcmp(midElement[index].op,"-")){
                 dealExpression(f,data,midElement[index].left_Num,midElement[index].right_Num);
                 fprintf(f,"sub $t0 $t0 $t1\n");
-                if(!strcmp(midElement[i].op,"ret")){
-                    fprintf(f,"addi $sp $sp 4\n");
-                    fprintf(f,"lw $ra 0($sp)\n");
-                }
                 fprintf(f,"sw $t0 0($sp)\n");
                 fprintf(f,"subi $sp $sp 4\n");
             }
@@ -353,10 +361,6 @@ void getMips(FILE *f,char *data){
                 dealExpression(f,data,midElement[index].left_Num,midElement[index].right_Num);
                 fprintf(f,"mult $t0 $t1\n");
                 fprintf(f,"mflo $t0\n");
-                if(!strcmp(midElement[i].op,"ret")){
-                    fprintf(f,"addi $sp $sp 4\n");
-                    fprintf(f,"lw $ra 0($sp)\n");
-                }
                 fprintf(f,"sw $t0 0($sp)\n");
                 fprintf(f,"subi $sp $sp 4\n");
             }
@@ -364,10 +368,6 @@ void getMips(FILE *f,char *data){
                 dealExpression(f,data,midElement[index].left_Num,midElement[index].right_Num);
                 fprintf(f,"div $t0 $t1\n");
                 fprintf(f,"mflo $t0\n");
-                if(!strcmp(midElement[i].op,"ret")){
-                    fprintf(f,"addi $sp $sp 4\n");
-                    fprintf(f,"lw $ra 0($sp)\n");
-                } 687777779
                 fprintf(f,"sw $t0 0($sp)\n");
                 fprintf(f,"subi $sp $sp 4\n");
             }
@@ -395,21 +395,48 @@ void getMips(FILE *f,char *data){
             }
         }
         else if(!strcmp(midElement[index].op,"push")){
-            int i;
+            /*int i;
             int funcAddress = 0;
             i = index;
             while(strcmp(midElement[i].op,"call") != 0){
                 i++;
             }
             funcAddress = isInSymbolTab(0,midElement[i].result);
-            address = 4*(funcAddress+element[funcAddress].para+1-i+index);
+            address = 4*(funcAddress+element[funcAddress].para+1-i+index);*/
             dealExpression(f,data,"",midElement[index].result);
-            fprintf(f,"sw $t1 %s+%d\n",data,address);
+            fprintf(f,"sw $t1 0($sp)\n");
+            fprintf(f,"subi $sp $sp 4\n");
         }
         else if(!strcmp(midElement[index].op,"call")){
             fprintf(f,"jal %s\n",midElement[index].result);
         }
         else if(!strcmp(midElement[index].op,"ret")){
+            int i;
+            int length;
+            length = strlen(midElement[index].result);
+            /*fprintf(f,"addi $sp $sp 4\n");
+            fprintf(f,"lw $ra 0($sp)\n");*/
+            if(isDigit(midElement[index].result)){
+                fprintf(f,"li $t0 %s\n",midElement[index].result);
+                fprintf(f,"sw $t0 0($sp)\n");
+                fprintf(f,"subi $sp $sp 4\n");
+            }
+            else if(isInSymbolTab(newlevel,midElement[index].result) != -1){
+                address = 4*isInSymbolTab(newlevel,midElement[index].result);
+                fprintf(f,"lw $t0 %s+%d\n",data,address);
+                fprintf(f,"sw $t0 0($sp)\n");
+                fprintf(f,"subi $sp $sp 4\n");
+            }
+            else{
+                for(i=0;i<length;i++){
+                    if(midElement[index].result[i] == '\''){
+                        fprintf(f,"li $t0 %s\n",midElement[index].result);
+                        fprintf(f,"sw $t0 0($sp)\n");
+                        fprintf(f,"subi $sp $sp 4\n");
+                        break;
+                    }
+                }
+            }
             fprintf(f,"jr $ra\n");
         }
         else if(!strcmp(midElement[index].op,">")||!strcmp(midElement[index].op,"<")||!strcmp(midElement[index].op,">=")||!strcmp(midElement[index].op,"<=")
@@ -510,3 +537,4 @@ void getMips(FILE *f,char *data){
         index++;
     }
 }
+
